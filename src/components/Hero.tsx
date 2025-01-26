@@ -232,7 +232,7 @@ export default function Hero() {
                 </HoverCard>
 
                 <a
-                  href="https://github.com/TypeError/sarif-dashboard"
+                  href="https://github.com/cak/sarif-dashboard"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 hover:underline"

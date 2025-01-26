@@ -10,7 +10,7 @@ A modern web application for **processing** and **visualizing** SARIF (Static An
   Seamlessly upload a `.sarif` file or paste raw SARIF JSON into the app. The data is processed **client-side**, ensuring complete privacy.
 
 - **Privacy-Focused**  
-  All SARIF data is stored in **local storage**, making it secure and available for re-analysis without any server-side processing. No external network calls are made with your data.
+  All SARIF data is processed locally in your browser and temporarily stored in `sessionStorage`. No data leaves your browser, and it is automatically cleared when the tab is closed.
 
 - **Interactive & Responsive UI**
 
@@ -28,7 +28,7 @@ A modern web application for **processing** and **visualizing** SARIF (Static An
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/TypeError/sarif-dashboard.git
+   git clone https://github.com/cak/sarif-dashboard.git
    cd sarif-dashboard
    ```
 

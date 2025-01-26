@@ -20,7 +20,7 @@ export function Navbar() {
         {/* Navigation Links */}
         <nav className="flex items-center space-x-6">
           <Link
-            href="https://github.com/TypeError/sarif-dashboard"
+            href="https://github.com/cak/sarif-dashboard"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm 
