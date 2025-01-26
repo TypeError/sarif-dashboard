@@ -215,6 +215,15 @@ export interface Result {
   /** A message describing the result. */
   message: Message;
 
+  /** A short description of the result (can be plain string for rendering). */
+  shortDescription?: MultiformatMessageString | string;
+
+  /** A full description of the result (can be plain string for rendering). */
+  fullDescription?: MultiformatMessageString | string;
+
+  /** Help information for the result (can be plain string for rendering). */
+  help?: MultiformatMessageString | string;
+
   /** The locations where the result was detected. */
   locations?: Location[];
 
@@ -235,6 +244,15 @@ export interface Result {
 
   /** URIs of work items associated with the result. */
   workItemUris?: string[];
+
+  /** Tags associated with the result (from properties.tags). */
+  tags?: string[];
+
+  /** A help URI associated with the result. */
+  helpUri?: string;
+
+  /** Custom severity extracted from rule configuration or level. */
+  severity?: string;
 }
 
 export interface Location {
@@ -293,7 +311,7 @@ export interface MultiformatMessageString {
   text?: string;
 
   /** A markdown-formatted message. */
-  markdown?: string;
+  markdown?: string | undefined;
 
   /** Key/value pairs that provide additional information about the message. */
   properties?: PropertyBag;
