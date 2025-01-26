@@ -330,5 +330,5 @@ export interface Message {
 
 export interface PropertyBag {
   /** A dictionary of custom properties. */
-  [key: string]: any;
+  [key: string]: unknown;
 }

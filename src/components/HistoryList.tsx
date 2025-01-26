@@ -15,10 +15,12 @@ export default function HistoryList() {
     const now = Date.now();
 
     if (storedHistory) {
-      const parsed = JSON.parse(storedHistory).filter((entry: any) => {
-        const isExpired = now - entry.timestamp > 24 * 60 * 60 * 1000;
-        return !isExpired;
-      });
+      const parsed = JSON.parse(storedHistory).filter(
+        (entry: { timestamp: number }) => {
+          const isExpired = now - entry.timestamp > 24 * 60 * 60 * 1000;
+          return !isExpired;
+        }
+      );
 
       sessionStorage.setItem("sarifHistory", JSON.stringify(parsed));
       setHistory(parsed);
@@ -26,7 +28,9 @@ export default function HistoryList() {
   }, []);
 
   const handleDelete = (id: string) => {
-    const updatedHistory = history.filter((entry: any) => entry.id !== id);
+    const updatedHistory = history.filter(
+      (entry: { id: string }) => entry.id !== id
+    );
     sessionStorage.setItem("sarifHistory", JSON.stringify(updatedHistory));
     setHistory(updatedHistory);
 
@@ -42,34 +46,36 @@ export default function HistoryList() {
         <p className="text-gray-300">No SARIF history available.</p>
       ) : (
         <ul className="space-y-2">
-          {history.map((entry: any) => (
-            <li
-              key={entry.id}
-              className="p-4 bg-gray-800 rounded-md shadow-md flex justify-between"
-            >
-              <div>
-                <p className="font-medium">{entry.name}</p>
-                <p className="text-xs text-gray-500">
-                  {new Date(entry.timestamp).toLocaleString()}
-                </p>
-              </div>
-              <div className="space-x-2">
-                <Button
-                  size="sm"
-                  onClick={() => router.push(`/dashboard?id=${entry.id}`)}
-                >
-                  View
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => handleDelete(entry.id)}
-                >
-                  <Trash className="w-4 h-4" />
-                </Button>
-              </div>
-            </li>
-          ))}
+          {history.map(
+            (entry: { id: string; name: string; timestamp: number }) => (
+              <li
+                key={entry.id}
+                className="p-4 bg-gray-800 rounded-md shadow-md flex justify-between"
+              >
+                <div>
+                  <p className="font-medium">{entry.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(entry.timestamp).toLocaleString()}
+                  </p>
+                </div>
+                <div className="space-x-2">
+                  <Button
+                    size="sm"
+                    onClick={() => router.push(`/dashboard?id=${entry.id}`)}
+                  >
+                    View
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(entry.id)}
+                  >
+                    <Trash className="w-4 h-4" />
+                  </Button>
+                </div>
+              </li>
+            )
+          )}
         </ul>
       )}
     </div>
