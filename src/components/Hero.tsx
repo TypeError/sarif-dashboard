@@ -1,103 +1,81 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, DragEvent } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "@/hooks/use-toast";
 
-import { Button } from "@/components/ui/button";
+// Shadcn UI & Hooks
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { CloudUpload, Info, Github } from "lucide-react";
+import { motion } from "motion/react";
+import Footer from "./Footer";
+import HistoryList from "./HistoryList";
+import { Badge } from "./ui/badge";
 
-import { validateSarif } from "@/utils/validateSarif";
-import { z } from "zod";
+function isValidJSON(str: string) {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-/**
- * Zod schema for validating SARIF input through react-hook-form.
- * - Requires a non-empty SARIF string.
- * - Validates the string as JSON and matches the SARIF schema.
- */
-const FormSchema = z.object({
-  sarif: z
-    .string()
-    .min(1, { message: "SARIF content is required." }) // Ensure input is not empty.
-    .refine((value) => validateSarif(value), {
-      message:
-        "Invalid SARIF format. Ensure it’s valid JSON and matches SARIF schema.",
-    }),
-});
-
-/**
- * Hero Component
- * - Allows users to upload a SARIF file or paste SARIF JSON content.
- * - Validates SARIF data and navigates to /dashboard with the data in the URL hash.
- */
 export default function Hero() {
   const router = useRouter();
-
-  // State to track if a file was successfully uploaded.
   const [fileUploaded, setFileUploaded] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Set up react-hook-form for form state management and validation.
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    mode: "onChange", // Validate on every change.
-  });
+  const storeSarifInSessionStorage = useCallback(
+    (name: string, content: string) => {
+      const existingString = sessionStorage.getItem("sarifHistory");
+      const existing = existingString ? JSON.parse(existingString) : [];
 
-  /**
-   * Handles file upload logic:
-   * - Reads the file as text using FileReader.
-   * - Validates the JSON immediately and updates the form state if valid.
-   */
-  const handleFileUpload = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-
-      // When the file is successfully read.
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          const content = e.target.result.toString().trim();
-
-          try {
-            // Attempt to validate SARIF JSON.
-            if (!validateSarif(content)) {
-              throw new Error("Invalid SARIF JSON");
-            }
-
-            // If valid, update form state and UI feedback.
-            form.setValue("sarif", content);
-            form.clearErrors("sarif"); // Clear any lingering validation errors.
-            setFileUploaded(true);
-            toast({
-              title: "File uploaded",
-              description: `Successfully loaded "${file.name}"`,
-            });
-          } catch (error) {
-            // Handle invalid SARIF errors.
-            toast({
-              title: "Invalid SARIF file",
-              description: "The uploaded file is not valid SARIF JSON.",
-              variant: "destructive",
-            });
-            setFileUploaded(false);
-          }
-        }
+      const id = Date.now().toString();
+      const newEntry = {
+        id,
+        name,
+        content,
+        timestamp: Date.now(),
       };
 
-      // Handle file reading errors.
+      existing.push(newEntry);
+      sessionStorage.setItem("sarifHistory", JSON.stringify(existing));
+      return id;
+    },
+    []
+  );
+
+  const handleFileUpload = useCallback(
+    async (file?: File) => {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          const content = e.target.result.toString();
+          if (!isValidJSON(content)) {
+            toast({
+              title: "Invalid JSON",
+              description: "The uploaded file does not contain valid JSON.",
+              variant: "destructive",
+            });
+            return;
+          }
+          const entryId = storeSarifInSessionStorage(file.name, content);
+          setFileUploaded(true);
+          toast({
+            title: "File Uploaded",
+            description: `Successfully loaded "${file.name}"`,
+          });
+          router.push(`/dashboard?id=${entryId}`);
+        }
+      };
       reader.onerror = () => {
         toast({
           title: "Error",
@@ -105,122 +83,185 @@ export default function Hero() {
           variant: "destructive",
         });
       };
-
       reader.readAsText(file);
     },
-    [form]
+    [router, storeSarifInSessionStorage]
   );
 
-  /**
-   * Final form submission handler:
-   * - Base64 encodes the valid SARIF content.
-   * - Navigates to /dashboard with the encoded content in the URL hash.
-   */
-  const onSubmit = useCallback(
-    (data: z.infer<typeof FormSchema>) => {
-      const base64Content = btoa(data.sarif);
-      router.push(`/dashboard#${base64Content}`);
+  const handleDragOver = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  const handleDragLeave = () => setIsDragging(false);
+  const handleDrop = useCallback(
+    (e: DragEvent<HTMLLabelElement>) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const file = e.dataTransfer?.files?.[0];
+      handleFileUpload(file);
     },
-    [router]
+    [handleFileUpload]
+  );
+
+  const handleFileInputChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      handleFileUpload(file);
+    },
+    [handleFileUpload]
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 flex flex-col items-center justify-center px-4 text-white">
-      <div className="max-w-2xl w-full bg-white/5 backdrop-blur-sm rounded-xl shadow-lg p-8">
-        <h1 className="text-5xl font-extrabold mb-4 text-center text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500">
-          SARIF Dashboard
-        </h1>
-        <p className="text-center text-gray-200 mb-8">
-          Provide your SARIF data by uploading a file <em>OR</em> pasting JSON
-          content.
-        </p>
+    <div className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-gray-900 text-white">
+      {/* Subtle background gradient, slightly darker */}
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-900 via-gray-900 to-blue-900 opacity-60 z-[-1]" />
 
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-8"
-            noValidate
-          >
-            {/* Option A: File Upload */}
-            <div className="flex flex-col space-y-4">
-              <h2 className="font-semibold text-lg text-gray-200">
-                Option 1: Upload a SARIF file
-              </h2>
-              <FormLabel htmlFor="sarifFile">Choose SARIF file:</FormLabel>
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.9, ease: "easeOut" }}
+        className="max-w-3xl w-full mx-4"
+      >
+        <Card className="bg-white/5 backdrop-blur-sm rounded-xl shadow-lg pt-8 space-y-6 border border-white/10">
+          <CardHeader className="p-0 text-center">
+            <CardTitle>
+              <h1
+                className="text-5xl font-extrabold bg-clip-text text-transparent 
+                             animate-text 
+                             bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500"
+              >
+                SARIF Dashboard
+              </h1>
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent className="space-y-8 px-6 pb-8">
+            <div className="text-center space-y-4">
+              <p className="text-lg text-gray-300 leading-relaxed max-w-2xl mx-auto pb-2">
+                Gain actionable insights into potential issues in your code by
+                uploading or pasting your SARIF data below.
+              </p>
+              {/* Feature bullets */}
+              <div className="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="p-4 bg-gray-800/80 rounded-lg shadow-md w-full sm:w-80"
+                >
+                  <h3 className="text-xl font-semibold text-blue-400 mb-2">
+                    High-Level Overview
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    Quickly scan and summarize your SARIF data for a broad
+                    understanding of code health.
+                  </p>
+                </motion.div>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className="p-4 bg-gray-800/80 rounded-lg shadow-md w-full sm:w-80"
+                >
+                  <h3 className="text-xl font-semibold text-blue-400 mb-2">
+                    In-Depth Analysis
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    Dive deep into specific findings to uncover vulnerabilities
+                    and actionable details.
+                  </p>
+                </motion.div>
+              </div>
+            </div>
+
+            {/* Upload Section */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2 text-gray-200">
+                <CloudUpload className="w-5 h-5 text-green-300" />
+                <h2 className="font-semibold text-lg">Upload a SARIF File</h2>
+              </div>
+
+              <label
+                htmlFor="sarifFile"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-md cursor-pointer ${
+                  isDragging
+                    ? "border-green-400 bg-gray-700/50"
+                    : "border-gray-600 hover:border-gray-400"
+                } transition-colors`}
+              >
+                <CloudUpload className="w-8 h-8 mb-2 text-gray-300" />
+                <p className="text-sm text-gray-400">
+                  {isDragging
+                    ? "Drop the file to upload"
+                    : "Drag & drop a SARIF file here or click to select"}
+                </p>
+              </label>
               <Input
                 id="sarifFile"
                 type="file"
                 accept=".json,.sarif"
-                onChange={handleFileUpload}
+                onChange={handleFileInputChange}
+                className="hidden"
               />
               {fileUploaded && (
-                <p className="text-sm text-green-400">File content loaded.</p>
+                <p className="text-sm text-green-400 mt-2">
+                  File successfully uploaded! Redirecting to the dashboard...
+                </p>
               )}
             </div>
 
-            {/* OR Divider */}
-            <div className="flex items-center justify-center text-gray-400 mt-4">
-              <hr className="flex-grow border-gray-500/50 mr-2" />
-              <span className="text-sm uppercase">or</span>
-              <hr className="flex-grow border-gray-500/50 ml-2" />
+            {/* History List */}
+            <HistoryList />
+
+            {/* Footer row: Privacy + GitHub */}
+            <div className="text-sm text-gray-400 text-center mt-10 flex flex-col gap-4 items-center">
+              <div className="flex gap-4">
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <span className="cursor-pointer inline-flex items-center gap-1">
+                      <Info className="w-4 h-4" />
+                      <strong>Privacy Notice</strong>
+                      <Badge variant="outline" className="ml-1">
+                        Local Only
+                      </Badge>
+                    </span>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-64 p-4 bg-gray-800 text-gray-200 text-sm rounded-lg shadow-lg">
+                    All SARIF data is processed locally in your browser. No data
+                    is sent to any server.
+                  </HoverCardContent>
+                </HoverCard>
+
+                <a
+                  href="https://github.com/TypeError/sarif-dashboard"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 hover:underline"
+                >
+                  <Github className="w-4 h-4" />
+                  <span>GitHub Repo</span>
+                </a>
+              </div>
             </div>
 
-            {/* Option B: Textarea for SARIF Content */}
-            <FormField
-              control={form.control}
-              name="sarif"
-              render={({ field }) => (
-                <FormItem>
-                  <h2 className="font-semibold text-lg text-gray-200 mt-4 mb-2">
-                    Option 2: Paste SARIF JSON
-                  </h2>
-                  <FormLabel htmlFor="sarifContent" className="mt-2">
-                    SARIF Content:
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      id="sarifContent"
-                      placeholder="Paste SARIF JSON content here..."
-                      className="h-72 resize-y text-sm text-black"
-                      {...field}
-                      // Clear errors if the user deletes input or fixes it.
-                      onChange={(e) => {
-                        field.onChange(e);
-                        if (!e.target.value.trim()) {
-                          form.clearErrors("sarif");
-                        }
-                      }}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Make sure the JSON matches the required SARIF schema.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Submit Button */}
-            <div className="flex justify-center">
-              <Button
-                variant="secondary"
-                type="submit"
-                className="px-8 py-3 text-lg font-semibold shadow-sm hover:shadow-md"
-                disabled={!form.formState.isValid}
-              >
-                View Dashboard
-              </Button>
+            <div className="text-center space-y-4">
+              <p className="text-sm text-blue-400">
+                Need example SARIF files? Check out{" "}
+                <a
+                  href="https://github.com/microsoft/sarif-sdk/blob/main/src/Samples/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-blue-300"
+                >
+                  SARIF Samples on GitHub
+                </a>
+                .
+              </p>
             </div>
-          </form>
-        </Form>
 
-        <p className="text-sm text-gray-400 text-center mt-14">
-          <strong>Privacy Notice:</strong> All SARIF data is processed locally
-          in your browser.
-          <br />
-          No data is sent to the server or stored externally.
-        </p>
-      </div>
+            <Footer />
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 }
