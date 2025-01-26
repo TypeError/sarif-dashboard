@@ -163,7 +163,7 @@ export function ChartsGrid({ sarif }: { sarif: SarifLog }) {
   }, [allResults]);
 
   // ======================
-  // 4) File Extension Distribution (Doughnut, top 10)
+  // 4) File Extension Distribution (Pie, top 10)
   // ======================
   const extensionData = useMemo<BasicItem[]>(() => {
     const extCounts: Record<string, number> = {};
@@ -195,12 +195,27 @@ export function ChartsGrid({ sarif }: { sarif: SarifLog }) {
     return arr;
   }, [allResults]);
 
-  // A shared dark tooltip style
+  // Palette for file-extension slices
+  const extensionColors = [
+    "#3b82f6", // Blue
+    "#10b981", // Green
+    "#f59e0b", // Amber
+    "#ef4444", // Red
+    "#8b5cf6", // Purple
+    "#ec4899", // Pink
+    "#6366f1", // Indigo
+    "#14b8a6", // Teal
+    "#eab308", // Yellow
+    "#f97316", // Orange
+  ];
+
+  // A shared dark tooltip style with white text
   const tooltipStyle = {
     backgroundColor: "#1f2937",
     border: "1px solid #374151",
     borderRadius: 6,
-    color: "#f9fafb",
+    // Ensure text is white
+    color: "#ffffff",
   };
 
   return (
@@ -228,6 +243,7 @@ export function ChartsGrid({ sarif }: { sarif: SarifLog }) {
                   nameKey="name"
                   cx="50%"
                   cy="50%"
+                  // keep the donut style here by specifying innerRadius
                   innerRadius={60}
                   outerRadius={90}
                   label
@@ -385,7 +401,7 @@ export function ChartsGrid({ sarif }: { sarif: SarifLog }) {
       </Card>
 
       {/* ===========================================
-          (4) File Extension Distribution (Doughnut)
+          (4) File Extension Distribution (Pie)
       ============================================ */}
       <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
         <CardHeader className="p-3 text-white bg-gradient-to-r from-purple-900 via-pink-900 to-blue-900">
@@ -407,13 +423,15 @@ export function ChartsGrid({ sarif }: { sarif: SarifLog }) {
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
+                  outerRadius={100} // full pie (no innerRadius)
                   label
                   labelLine={false}
                 >
                   {extensionData.map((entry, idx) => (
-                    <Cell key={idx} fill="#3b82f6" />
+                    <Cell
+                      key={idx}
+                      fill={extensionColors[idx % extensionColors.length]}
+                    />
                   ))}
                 </Pie>
                 <Tooltip
