@@ -138,10 +138,27 @@ export default function Hero() {
 
           <CardContent className="space-y-8 px-6 pb-8">
             <div className="text-center space-y-4">
+              {/* Intro Text */}
               <p className="text-lg text-gray-300 leading-relaxed max-w-2xl mx-auto pb-2">
-                Gain actionable insights into potential issues in your code by
-                uploading or pasting your SARIF data below.
+                Upload your SARIF data to gain insights into potential issues in
+                your code.
+                {/* Brief SARIF explanation with official link */}
+                <span className="block mt-2 text-sm text-gray-400">
+                  SARIF (Static Analysis Results Interchange Format) is a
+                  standardized, JSON-based format that unifies outputs from
+                  various static analysis tools.{" "}
+                  <a
+                    href="https://sarifweb.azurewebsites.net/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 underline hover:text-blue-300"
+                  >
+                    Learn more about SARIF
+                  </a>
+                  .
+                </span>
               </p>
+
               {/* Feature bullets */}
               <div className="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                 <motion.div
