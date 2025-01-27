@@ -258,21 +258,6 @@ export default function Hero() {
               </div>
             </div>
 
-            <div className="text-center space-y-4">
-              <p className="text-sm text-blue-400">
-                Need example SARIF files? Check out{" "}
-                <a
-                  href="https://github.com/microsoft/sarif-sdk/blob/main/src/Samples/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline hover:text-blue-300"
-                >
-                  SARIF Samples on GitHub
-                </a>
-                .
-              </p>
-            </div>
-
             <Footer />
           </CardContent>
         </Card>
