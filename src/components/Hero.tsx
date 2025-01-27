@@ -145,6 +145,9 @@ export default function Hero() {
               {/* Feature bullets */}
               <div className="mt-8 flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                 <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
                   whileHover={{ scale: 1.05 }}
                   className="p-4 bg-gray-800/80 rounded-lg shadow-md w-full sm:w-80"
                 >
@@ -157,6 +160,9 @@ export default function Hero() {
                   </p>
                 </motion.div>
                 <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
                   whileHover={{ scale: 1.05 }}
                   className="p-4 bg-gray-800/80 rounded-lg shadow-md w-full sm:w-80"
                 >
@@ -183,11 +189,14 @@ export default function Hero() {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`flex flex-col items-center justify-center w-full h-28 border-2 border-dashed rounded-md cursor-pointer ${
-                  isDragging
-                    ? "border-green-400 bg-gray-700/50"
-                    : "border-gray-600 hover:border-gray-400"
-                } transition-colors`}
+                className={`flex flex-col items-center justify-center w-full h-28 
+                          border-2 border-dashed rounded-md cursor-pointer 
+                          transition-transform 
+                          ${
+                            isDragging
+                              ? "border-green-400 bg-gray-700/50 scale-105 shadow-lg"
+                              : "border-gray-600 hover:border-gray-400"
+                          }`}
               >
                 <CloudUpload className="w-8 h-8 mb-2 text-gray-300" />
                 <p className="text-sm text-gray-400">
@@ -214,14 +223,18 @@ export default function Hero() {
             <HistoryList />
 
             {/* Footer row: Privacy + GitHub */}
-            <div className="text-sm text-gray-400 text-center mt-10 flex flex-col gap-4 items-center">
-              <div className="flex gap-4">
+            <div className="text-sm text-gray-400 text-center mt-10 flex flex-col gap-6 items-center">
+              {/* Privacy Notice */}
+              <div className="flex gap-6 items-center">
                 <HoverCard>
                   <HoverCardTrigger asChild>
-                    <span className="cursor-pointer inline-flex items-center gap-1">
-                      <Info className="w-4 h-4" />
-                      <strong>Privacy Notice</strong>
-                      <Badge variant="outline" className="ml-1">
+                    <span
+                      className="cursor-pointer inline-flex items-center gap-1"
+                      aria-label="Privacy Notice"
+                    >
+                      <Info className="w-4 h-4 text-gray-400" />
+                      <strong className="text-gray-300">Privacy Notice</strong>
+                      <Badge variant="outline" className="ml-1 text-gray-300">
                         Local Only
                       </Badge>
                     </span>

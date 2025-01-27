@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Github } from "lucide-react";
 
 export function Navbar() {
   return (
-    <header className="w-full border-b border-border bg-gray-900 shadow-sm sticky top-0 z-50">
+    <header className="sticky w-full border-b border-border bg-gray-900 shadow-sm  top-0 z-50">
+      {/* Animated Accent */}
+      <div className="absolute left-0 top-0 w-full h-1 bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 animate-pulse" />
+
       <div className="flex items-center justify-between px-6 py-4">
         {/* Logo / Title */}
         <div className="flex items-center space-x-4">
