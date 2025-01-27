@@ -44,6 +44,7 @@ import {
   MultiformatMessageString,
 } from "@/types/sarif";
 import { Button } from "@/components/ui/button";
+import { GeistMono } from "geist/font/mono";
 
 /** Extend your local ReportingDescriptor so we can safely use `helpUri`. */
 interface ExtendedReportingDescriptor extends ReportingDescriptor {
@@ -205,7 +206,7 @@ export function DataTable({ sarif }: DataTableProps) {
         header: "File Name",
         cell: ({ getValue }) => {
           const fileName = getValue<string>();
-          return <span>{fileName}</span>;
+          return <span className={`${GeistMono.variable}`}>{fileName}</span>;
         },
       },
       {

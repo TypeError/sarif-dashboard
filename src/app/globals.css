@@ -1,8 +1,6 @@
 @import "tailwindcss";
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
-  /* Apply the same dark gradient as the Hero */
   @apply min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white;
 }
 
